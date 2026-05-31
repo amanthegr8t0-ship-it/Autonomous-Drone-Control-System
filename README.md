@@ -79,7 +79,7 @@ Phase 5 — Blockchain Audit Logging       🔄 UPCOMING
 
 ### Backend
 ```bash
-git clone https://github.com/your-username/autonomous-drone-control
+git clone https://github.com/amanthegr8t0-ship-it/autonomous-drone-control
 cd autonomous-drone-control/backend
 pip install -r requirements.txt
 uvicorn main:app --reload
@@ -126,4 +126,4 @@ Actively in development. Follow along as new phases are added.
 
 **Your Aman Sharma**
 BS Data Science — IIT Madras
-[LinkedIn](https://linkedin.com/in/your-profile) · [GitHub](https://github.com/your-username)
+[LinkedIn](https://linkedin.com/in/your-profile) · [GitHub](https://github.com/amanthegr8t0-ship-it)
