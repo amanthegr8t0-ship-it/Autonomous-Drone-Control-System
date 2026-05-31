@@ -126,4 +126,4 @@ Actively in development. Follow along as new phases are added.
 
 **Your Aman Sharma**
 BS Data Science — IIT Madras
-[LinkedIn](https://linkedin.com/in/your-profile) · [GitHub](https://github.com/amanthegr8t0-ship-it)
+[LinkedIn](https://linkedin.com/in/aman-sharma) · [GitHub](https://github.com/amanthegr8t0-ship-it)
