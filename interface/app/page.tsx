@@ -21,6 +21,9 @@ useEffect(() => {
         console.log(data);
         setFleet(data);
     };
+    ws.onopen = () => console.log("WebSocket connected");
+    ws.onerror = (error) => console.log("WebSocket error", error);
+ws.onclose = (event) => console.log("WebSocket closed", event.code, event.reason);
 }, []);
 
 useEffect(() => {
