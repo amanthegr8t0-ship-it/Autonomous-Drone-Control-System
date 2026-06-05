@@ -39,15 +39,17 @@ async def simulate_fleet():
         if proxima:
             print(f"Warning these are risky situation {proxima}")
         for i in fleet.get_all_drone():
-            if i.battery > 0:
-                print(i.battery)
-                simulate_movement(i)
-                curr_battery = i.battery - 0.25
-                fleet.update_drone(id=i.id, battery = curr_battery)
-            else:
-                fleet.update_drone(id=i.id, status="Landed")
-                print("Battery critically low")
-                print(f"Landed at {i.x},{i.y}")
+            if i.status != "Landed":
+                if i.battery > 0:
+                    print(i.battery)
+                    simulate_movement(i)
+                    curr_battery = i.battery - 0.25
+                    fleet.update_drone(id=i.id, battery = curr_battery)
+                else:
+                    fleet.update_drone(id=i.id, status="Landed")
+                    print("Battery critically low")
+                    print(f"Landed at {i.x},{i.y}")
+                    
         lst = []
         for i in fleet.get_all_drone():
             fleet_telemetry = {"id": i.id, "x": i.x, "y": i.y, "battery": i.battery, "status": i.status}
@@ -68,20 +70,26 @@ def simulate_movement(drone):
     dy = drone.target_y-drone.y
     dist = math.sqrt(dx**2 + dy**2)
 
-    if drone.battery > 0:
-        if dist > 0.5:
-            stepsx, stepsy = drone.intermediate_steps.pop(0)
-            stx = stepsx*0.5
-            sty = stepsy*0.5
-            fleet.update_drone(id=drone.id, x=stx, y=sty)
-            print(f"drone at {stepsx},{stepsy}")
-            if drone.battery <= 20 :
-                print("critical")
 
+    if drone.battery > 0:
+        if drone.status != "Landed":
+            if dist > 0.5:
+                stepsx, stepsy = drone.intermediate_steps.pop(0)
+                stx = stepsx*0.5
+                sty = stepsy*0.5
+                fleet.update_drone(id=drone.id, x=stx, y=sty)
+                print(f"drone at {stepsx},{stepsy}")
+                if drone.battery <= 20 :
+                    print("critical")
+
+            else:
+                fleet.update_drone(id=drone.id, x = drone.target_x, y = drone.target_y, status = "Landed")
+                return f"Landed at {drone.x},{drone.y}"
+            
         else:
             fleet.update_drone(id=drone.id, x = drone.target_x, y = drone.target_y, status = "Landed")
             return f"Landed at {drone.x},{drone.y}"
-        
+            
     else:
         fleet.update_drone(id=drone.id, status = "Landed")
         return f"Landed at {drone.x},{drone.y}"
