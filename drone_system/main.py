@@ -1,16 +1,22 @@
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import FastAPI, WebSocket, HTTPException
 from models import Drone, FleetManager
 import json
 import asyncio
 import redis
 import math
 from path import AStar, Grid_Maker
+from pydantic import BaseModel
 
 
 fleet = FleetManager()
 fleet.add_drone(Drone(id=1, x=3.5, y=8.4,target_x=89.8, target_y=100.2))
 fleet.add_drone(Drone(id=2, x=6.3, y=2.7, target_x=45.8, target_y=19.2))
 fleet.add_drone(Drone(id=3, x=3.6, y=4.4, target_x=79.8, target_y=187.2))
+
+class connection(BaseModel):
+    Droneid: int
+    tarx: float
+    tary: float
 
 moving_grid = Grid_Maker(grid_order=400)
 interm = AStar(moving_grid)
@@ -65,7 +71,7 @@ def simulate_movement(drone):
     tar_col = int(drone.target_x//0.5)
     tar_row = int(drone.target_y//0.5)
     if not drone.intermediate_steps:
-        drone.intermediate_steps = interm.find_path((col, row), (tar_col, tar_row))
+        drone.intermediate_steps = interm.find_path((col, row), (tar_col, tar_row))[0]
     dx = drone.target_x-drone.x
     dy = drone.target_y-drone.y
     dist = math.sqrt(dx**2 + dy**2)
@@ -75,7 +81,7 @@ def simulate_movement(drone):
         if drone.status != "Landed":
             if dist > 0.5:
                 if any(moving_grid.available_cell(*n) == 0 for n in drone.intermediate_steps):
-                    drone.intermediate_steps = interm.find_path((col, row), (tar_col, tar_row))
+                    drone.intermediate_steps= interm.find_path((col, row), (tar_col, tar_row))[0]
 
                 else:
                     stepsx, stepsy = drone.intermediate_steps.pop(0)
@@ -110,3 +116,27 @@ def get_drone_telemetry(drone_id : int):
 @app.get("/{col}/{row}")
 def get_obstacle_info(col:int, row:int):
     moving_grid.obstacle(col, row)
+
+@app.post("/assign-mission")
+async def assign_mission(request:connection):
+    iid = fleet.get_drone(request.Droneid)
+    # Option 1 - check the type
+    if not isinstance(iid, Drone):
+        raise HTTPException(status_code=404, detail="Drone not found.")
+    # Option 2 - check if it's a Drone instance
+
+    col = int(iid.x//0.5)
+    row = int(iid.y//0.5)
+    tar_coll = int(request.tarx//0.5)
+    tar_roww = int(request.tary//0.5) 
+    path, cost= interm.find_path((col, row), (tar_coll, tar_roww))
+    estimated_cost = cost*0.25
+    required_cost = estimated_cost*1.20
+    if iid.battery >= required_cost:
+        fleet.update_drone(iid.id, tarx=request.tarx, tary=request.tary)
+        iid.intermediate_steps.clear()
+        simulate_movement(iid)
+        return "Mission Assignment Completion."
+    else:
+        raise HTTPException(status_code=400, detail="Battery not sufficient.")
+    

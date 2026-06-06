@@ -51,7 +51,7 @@ class AStar:
                     last_one = came_from[last_one]
                 wpath.append(start)
                 wpath.reverse()
-                return wpath
+                return wpath, g_score[goal]
 
             closed_set.add(current)
             # step 4 - loop through neighbors
@@ -70,9 +70,9 @@ class AStar:
                     tentative_g = g_score[current]+sqrt(2)
 
                 if tentative_g < g_score.get(neighbour, float('inf')):
-                    came_from[neighbour] = current
+                    came_from[neighbour] = current 
                     # update came_from
-                    g_score[neighbour] = tentative_g
+                    g_score[neighbour] = tentative_g 
                     # update g_score
                     huretic = sqrt((neighbour_x-goal_x)**2+(neighbour_y-goal_y)**2)
 
