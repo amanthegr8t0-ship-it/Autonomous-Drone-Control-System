@@ -74,13 +74,17 @@ def simulate_movement(drone):
     if drone.battery > 0:
         if drone.status != "Landed":
             if dist > 0.5:
-                stepsx, stepsy = drone.intermediate_steps.pop(0)
-                stx = stepsx*0.5
-                sty = stepsy*0.5
-                fleet.update_drone(id=drone.id, x=stx, y=sty)
-                print(f"drone at {stepsx},{stepsy}")
-                if drone.battery <= 20 :
-                    print("critical")
+                if any(moving_grid.available_cell(*n) == 0 for n in drone.intermediate_steps):
+                    drone.intermediate_steps = interm.find_path((col, row), (tar_col, tar_row))
+
+                else:
+                    stepsx, stepsy = drone.intermediate_steps.pop(0)
+                    stx = stepsx*0.5
+                    sty = stepsy*0.5
+                    fleet.update_drone(id=drone.id, x=stx, y=sty)
+                    print(f"drone{drone.id} at {stepsx},{stepsy}")
+                    if drone.battery <= 20 :
+                        print("critical")
 
             else:
                 fleet.update_drone(id=drone.id, x = drone.target_x, y = drone.target_y, status = "Landed")
@@ -102,3 +106,7 @@ def get_fleet_status():
 def get_drone_telemetry(drone_id : int):
     
     return fleet.get_drone(drone_id)        
+
+@app.get("/{col}/{row}")
+def get_obstacle_info(col:int, row:int):
+    moving_grid.obstacle(col, row)
